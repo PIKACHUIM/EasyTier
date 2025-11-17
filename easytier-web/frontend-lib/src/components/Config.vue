@@ -198,6 +198,46 @@ function savePortForward() {
 const portForwardContainer = ref<HTMLElement | null>(null);
 const isCompact = ref(false);
 
+// Flow Policy
+import { FlowPolicyAction, FlowPolicyRule } from '../types/network'
+
+const flowPolicyActionOptions = ref([
+  { value: FlowPolicyAction.LimitBandwidth, label: () => t('flow_policy_action_limit_bandwidth') },
+  { value: FlowPolicyAction.DisableRelay, label: () => t('flow_policy_action_disable_relay') },
+  { value: FlowPolicyAction.DisablePublicForward, label: () => t('flow_policy_action_disable_public_forward') },
+]);
+
+function addFlowPolicyRule() {
+  if (!curNetwork.value.flow_policy) {
+    curNetwork.value.flow_policy = { rules: [], monthly_reset_day: 1 };
+  }
+  curNetwork.value.flow_policy.rules.push({
+    traffic_threshold_gb: 10,
+    action: FlowPolicyAction.LimitBandwidth,
+    bandwidth_limit_mbps: 10,
+  });
+}
+
+function removeFlowPolicyRule(index: number) {
+  if (curNetwork.value.flow_policy) {
+    curNetwork.value.flow_policy.rules.splice(index, 1);
+  }
+}
+
+// Report Config
+function addReportUrl() {
+  if (!curNetwork.value.report_config) {
+    curNetwork.value.report_config = { report_urls: [], report_token: '', heartbeat_interval_minutes: 5 };
+  }
+  curNetwork.value.report_config.report_urls.push('');
+}
+
+function removeReportUrl(index: number) {
+  if (curNetwork.value.report_config) {
+    curNetwork.value.report_config.report_urls.splice(index, 1);
+  }
+}
+
 
 onMounted(() => {
   if (portForwardContainer.value) {
@@ -422,6 +462,112 @@ onMounted(() => {
                   </div>
                 </div>
               </div>
+
+            </div>
+          </Panel>
+
+          <Divider />
+
+          <Panel :header="t('flow_policy')" toggleable collapsed>
+            <div class="flex flex-col gap-y-2">
+              <div class="flex flex-row gap-x-9 flex-wrap">
+                <div class="flex flex-col gap-2 basis-5/12 grow">
+                  <div class="flex">
+                    <label for="monthly_reset_day">{{ t('flow_policy_monthly_reset_day') }}</label>
+                    <span class="pi pi-question-circle ml-2 self-center" v-tooltip="t('flow_policy_monthly_reset_day_help')"></span>
+                  </div>
+                  <InputNumber id="monthly_reset_day" v-model="curNetwork.flow_policy.monthly_reset_day" 
+                    :format="false" :allow-empty="false" :min="1" :max="31" class="w-full" />
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2 grow p-fluid">
+                <div class="flex">
+                  <label>{{ t('flow_policy_rules') }}</label>
+                  <span class="pi pi-question-circle ml-2 self-center" v-tooltip="t('flow_policy_rules_help')"></span>
+                </div>
+                <div v-for="(rule, index) in curNetwork.flow_policy?.rules" :key="index" class="flex gap-2 items-end mb-2">
+                  <div style="flex-grow: 2;">
+                    <label class="text-xs">{{ t('flow_policy_traffic_threshold') }}</label>
+                    <InputNumber v-model="rule.traffic_threshold_gb" :format="false" :step="1" 
+                      mode="decimal" :min="0" suffix=" GB" fluid />
+                  </div>
+                  <div style="flex-grow: 3;">
+                    <label class="text-xs">{{ t('flow_policy_action') }}</label>
+                    <SelectButton v-model="rule.action" :options="flowPolicyActionOptions" 
+                      :allow-empty="false" option-value="value">
+                      <template #option="slotProps">
+                        {{ slotProps.option.label() }}
+                      </template>
+                    </SelectButton>
+                  </div>
+                  <div v-if="rule.action === FlowPolicyAction.LimitBandwidth" style="flex-grow: 2;">
+                    <label class="text-xs">{{ t('flow_policy_bandwidth_limit') }}</label>
+                    <InputNumber v-model="rule.bandwidth_limit_mbps" :format="false" :step="1" 
+                      mode="decimal" :min="0" suffix=" Mbps" fluid />
+                  </div>
+                  <div style="flex-grow: 1;">
+                    <Button icon="pi pi-trash" severity="danger" text rounded 
+                      @click="removeFlowPolicyRule(index)" />
+                  </div>
+                </div>
+                <div class="flex justify-content-end mt-2">
+                  <Button icon="pi pi-plus" :label="t('flow_policy_add_rule')" severity="success"
+                    @click="addFlowPolicyRule" />
+                </div>
+              </div>
+            </div>
+          </Panel>
+
+          <Divider />
+
+          <Panel :header="t('report_config')" toggleable collapsed>
+            <div class="flex flex-col gap-y-2">
+              <div class="flex flex-row gap-x-9 flex-wrap">
+                <div class="flex flex-col gap-2 basis-5/12 grow">
+                  <div class="flex">
+                    <label for="report_token">{{ t('report_token') }}</label>
+                    <span class="pi pi-question-circle ml-2 self-center" v-tooltip="t('report_token_help')"></span>
+                  </div>
+                  <InputText id="report_token" v-model="curNetwork.report_config.report_token" class="w-full" />
+                </div>
+                <div class="flex flex-col gap-2 basis-5/12 grow">
+                  <div class="flex">
+                    <label for="heartbeat_interval">{{ t('report_heartbeat_interval') }}</label>
+                    <span class="pi pi-question-circle ml-2 self-center" v-tooltip="t('report_heartbeat_interval_help')"></span>
+                  </div>
+                  <InputNumber id="heartbeat_interval" v-model="curNetwork.report_config.heartbeat_interval_minutes" 
+                    :format="false" :allow-empty="false" :min="1" suffix=" min" class="w-full" />
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2 grow p-fluid">
+                <div class="flex">
+                  <label>{{ t('report_urls') }}</label>
+                  <span class="pi pi-question-circle ml-2 self-center" v-tooltip="t('report_urls_help')"></span>
+                </div>
+                <div v-for="(url, index) in curNetwork.report_config?.report_urls" :key="index" class="flex gap-2 items-end mb-2">
+                  <div style="flex-grow: 10;">
+                    <InputText v-model="curNetwork.report_config.report_urls[index]" 
+                      :placeholder="t('report_url_placeholder')" fluid />
+                  </div>
+                  <div style="flex-grow: 1;">
+                    <Button icon="pi pi-trash" severity="danger" text rounded 
+                      @click="removeReportUrl(index)" />
+                  </div>
+                </div>
+                <div class="flex justify-content-end mt-2">
+                  <Button icon="pi pi-plus" :label="t('report_add_url')" severity="success"
+                    @click="addReportUrl" />
+                </div>
+              </div>
+            </div>
+          </Panel>
+
+          <Divider />
+
+          <Panel :header="t('advanced_settings')" toggleable collapsed>
+            <div class="flex flex-col gap-y-2">
 
               <div class="flex flex-row gap-x-9 flex-wrap w-full">
                 <div class="flex flex-col gap-2 grow p-fluid">

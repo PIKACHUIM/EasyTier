@@ -37,6 +37,11 @@ pub struct PeerMap {
 }
 
 impl PeerMap {
+    /// 获取全局上下文引用
+    pub fn global_ctx(&self) -> &ArcGlobalCtx {
+        &self.global_ctx
+    }
+
     pub fn new(packet_send: PacketRecvChan, global_ctx: ArcGlobalCtx, my_peer_id: PeerId) -> Self {
         PeerMap {
             global_ctx,
@@ -110,7 +115,19 @@ impl PeerMap {
         peer_id == self.my_peer_id || self.peer_map.contains_key(&peer_id)
     }
 
-    pub async fn send_msg_directly(&self, msg: ZCPacket, dst_peer_id: PeerId) -> Result<(), Error> {
+pub async fn send_msg_directly(&self, msg: ZCPacket, dst_peer_id: PeerId) -> Result<(), Error> {
+// 检查流量策略 - 带宽限制
+        if let Some(manager) = self.global_ctx().policy_container().get_flow_policy_manager().await {
+            if let Some(limiter) = manager.should_limit_bandwidth() {
+                let packet_size = msg.buf_len() as u64;
+                if !limiter.try_consume(packet_size) {
+                    tracing::warn!("Bandwidth limit exceeded: rejected {} bytes packet", packet_size);
+return Err(Error::Unknown);
+                }
+                tracing::trace!("Bandwidth limited: consumed {} bytes", packet_size);
+            }
+        }
+
         if dst_peer_id == self.my_peer_id {
             let packet_send = self.packet_send.clone();
             tokio::spawn(async move {

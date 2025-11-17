@@ -155,7 +155,24 @@ impl EasyTierLauncher {
         #[cfg(any(target_os = "android", target_env = "ohos"))]
         Self::run_routine_for_android(&instance, &data, &mut tasks).await;
 
-        instance.run().await?;
+instance.run().await?;
+
+        // 设置流量策略管理器和上报管理器到GlobalCtx
+        let global_ctx = instance.get_global_ctx();
+
+        if let Some(manager) = instance.get_flow_policy_manager() {
+            global_ctx.policy_container()
+                .set_flow_policy_manager(Some(manager))
+                .await;
+            tracing::info!("Flow policy manager initialized");
+        }
+
+        if let Some(manager) = instance.get_report_manager() {
+            global_ctx.policy_container()
+                .set_report_manager(Some(manager))
+                .await;
+            tracing::info!("Report manager initialized");
+        }
 
         api_service
             .write()
@@ -757,6 +774,11 @@ impl NetworkConfig {
         }
 
         cfg.set_flags(flags);
+
+        // Note: flow_policy and report_config are not stored in TOML config
+        // They are only used for network management and monitoring
+        // The actual implementation will be handled by the instance manager
+
         Ok(cfg)
     }
 
@@ -895,6 +917,10 @@ impl NetworkConfig {
                 .map(|s| s.to_string())
                 .collect();
         }
+
+        // Note: flow_policy and report_config are not loaded from TOML config
+        // They are managed separately by the network instance manager
+        // result.flow_policy and result.report_config will remain None here
 
         Ok(result)
     }

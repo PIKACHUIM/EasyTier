@@ -70,6 +70,9 @@ export interface NetworkConfig {
   enable_private_mode?: boolean
 
   port_forwards: PortForwardConfig[]
+
+  flow_policy?: FlowPolicyConfig
+  report_config?: ReportConfig
 }
 
 export function DEFAULT_NETWORK_CONFIG(): NetworkConfig {
@@ -132,6 +135,15 @@ export function DEFAULT_NETWORK_CONFIG(): NetworkConfig {
     enable_magic_dns: false,
     enable_private_mode: false,
     port_forwards: [],
+    flow_policy: {
+      rules: [],
+      monthly_reset_day: 1,
+    },
+    report_config: {
+      report_urls: [],
+      report_token: '',
+      heartbeat_interval_minutes: 5,
+    },
   }
 }
 
@@ -265,6 +277,29 @@ export interface PortForwardConfig {
   dst_ip: string,
   dst_port: number,
   proto: string
+}
+
+export enum FlowPolicyAction {
+  LimitBandwidth = 0,
+  DisableRelay = 1,
+  DisablePublicForward = 2,
+}
+
+export interface FlowPolicyRule {
+  traffic_threshold_gb: number
+  action: FlowPolicyAction
+  bandwidth_limit_mbps?: number
+}
+
+export interface FlowPolicyConfig {
+  rules: FlowPolicyRule[]
+  monthly_reset_day: number
+}
+
+export interface ReportConfig {
+  report_urls: string[]
+  report_token: string
+  heartbeat_interval_minutes: number
 }
 
 // 添加新行

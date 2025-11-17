@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::common::config::ProxyNetworkConfig;
+use crate::common::policy_container::PolicyContainer;
 use crate::common::stats_manager::StatsManager;
 use crate::common::token_bucket::TokenBucketManager;
 use crate::peers::acl_filter::AclFilter;
@@ -94,6 +95,8 @@ pub struct GlobalCtx {
     stats_manager: Arc<StatsManager>,
 
     acl_filter: Arc<AclFilter>,
+
+    policy_container: Arc<PolicyContainer>,
 }
 
 impl std::fmt::Debug for GlobalCtx {
@@ -181,6 +184,8 @@ impl GlobalCtx {
             stats_manager: Arc::new(StatsManager::new()),
 
             acl_filter: Arc::new(AclFilter::new()),
+
+            policy_container: Arc::new(PolicyContainer::new()),
         }
     }
 
@@ -389,6 +394,10 @@ impl GlobalCtx {
 
     pub fn get_acl_filter(&self) -> &Arc<AclFilter> {
         &self.acl_filter
+    }
+
+    pub fn policy_container(&self) -> &Arc<PolicyContainer> {
+        &self.policy_container
     }
 
     pub fn get_acl_groups(&self, peer_id: PeerId) -> Vec<PeerGroupInfo> {

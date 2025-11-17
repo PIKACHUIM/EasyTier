@@ -76,6 +76,9 @@ message NetworkConfig {
   repeated PortForwardConfig port_forwards = 48;
 
   optional bool disable_sym_hole_punching = 49;
+
+  optional FlowPolicyConfig flow_policy = 51;
+  optional ReportConfig report_config = 52;
 }
 
 message PortForwardConfig {
@@ -84,6 +87,29 @@ message PortForwardConfig {
   string dst_ip = 3;
   uint32 dst_port = 4;
   string proto = 5;
+}
+
+enum FlowPolicyAction {
+  LimitBandwidth = 0;
+  DisableRelay = 1;
+  DisablePublicForward = 2;
+}
+
+message FlowPolicyRule {
+  double traffic_threshold_gb = 1;
+  FlowPolicyAction action = 2;
+  optional double bandwidth_limit_mbps = 3;
+}
+
+message FlowPolicyConfig {
+  repeated FlowPolicyRule rules = 1;
+  int32 monthly_reset_day = 2;
+}
+
+message ReportConfig {
+  repeated string report_urls = 1;
+  string report_token = 2;
+  int32 heartbeat_interval_minutes = 3;
 }
 
 message MyNodeInfo {

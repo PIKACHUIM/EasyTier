@@ -1023,12 +1023,28 @@ impl PeerManager {
         result
     }
 
-    async fn send_msg_internal(
+async fn send_msg_internal(
         peers: &Arc<PeerMap>,
         foreign_network_client: &Arc<ForeignNetworkClient>,
         msg: ZCPacket,
         dst_peer_id: PeerId,
     ) -> Result<(), Error> {
+        // 检查是否禁用中转
+if let Some(manager) = peers.global_ctx().policy_container().get_flow_policy_manager().await {
+            if manager.should_disable_relay() {
+                // 如果目标不是直连peer，拒绝转发
+                if !peers.has_peer(dst_peer_id) {
+                    tracing::warn!(
+                        ?dst_peer_id,
+                        "Relay disabled by flow policy, dropping packet"
+                    );
+                    return Err(Error::RouteError(Some(
+                        "Relay disabled by flow policy".to_string()
+                    )));
+                }
+            }
+        }
+
         let policy =
             Self::get_next_hop_policy(msg.peer_manager_header().unwrap().is_latency_first());
 

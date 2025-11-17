@@ -156,6 +156,29 @@ socks5: Socks5 Server
 socks5_help: |
   Enable socks5 server, allow socks5 client to access virtual network. format: <port>, e.g.: 1080
 
+flow_policy: Flow Policy
+flow_policy_monthly_reset_day: Monthly Reset Day
+flow_policy_monthly_reset_day_help: Day of month to reset traffic statistics (1-31)
+flow_policy_rules: Flow Policy Rules
+flow_policy_rules_help: Configure traffic threshold and corresponding actions
+flow_policy_traffic_threshold: Traffic Threshold (GB)
+flow_policy_action: Action
+flow_policy_bandwidth_limit: Bandwidth Limit (Mbps)
+flow_policy_add_rule: Add Rule
+flow_policy_action_limit_bandwidth: Limit Bandwidth
+flow_policy_action_disable_relay: Disable Relay
+flow_policy_action_disable_public_forward: Disable Public Forward
+
+report_config: Report Configuration
+report_token: Report Token
+report_token_help: Token for node reporting authentication
+report_heartbeat_interval: Heartbeat Interval (minutes)
+report_heartbeat_interval_help: Interval for sending heartbeat reports
+report_urls: Report URLs
+report_urls_help: API endpoints for reporting node status, one per line
+report_url_placeholder: "e.g.: https://example.com/api/report"
+report_add_url: Add URL
+
 exit_nodes: Exit Nodes
 exit_nodes_help: Exit nodes to forward all traffic to, a virtual ipv4 address, priority is determined by the order of the list
 

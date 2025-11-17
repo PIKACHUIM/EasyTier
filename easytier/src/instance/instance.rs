@@ -16,7 +16,9 @@ use tokio_util::sync::CancellationToken;
 use crate::common::acl_processor::AclRuleBuilder;
 use crate::common::config::ConfigLoader;
 use crate::common::error::Error;
+use crate::common::flow_policy_manager::FlowPolicyManager;
 use crate::common::global_ctx::{ArcGlobalCtx, GlobalCtx, GlobalCtxEvent};
+use crate::common::report_manager::ReportManager;
 use crate::common::scoped_task::ScopedTask;
 use crate::common::PeerId;
 use crate::connector::direct::DirectConnectorManager;
@@ -532,6 +534,9 @@ pub struct Instance {
     #[cfg(feature = "socks5")]
     socks5_server: Arc<Socks5Server>,
 
+    flow_policy_manager: Option<Arc<FlowPolicyManager>>,
+    report_manager: Option<Arc<ReportManager>>,
+
     global_ctx: ArcGlobalCtx,
 }
 
@@ -608,6 +613,9 @@ impl Instance {
 
             #[cfg(feature = "socks5")]
             socks5_server,
+
+            flow_policy_manager: None,
+            report_manager: None,
 
             global_ctx,
         }
@@ -972,6 +980,9 @@ impl Instance {
             )
             .await?;
 
+        // 注意：flow_policy_manager 和 report_manager 需要通过网络管理API动态设置
+        // 这里初始化为None，稍后通过set_flow_policy_manager和set_report_manager方法设置
+
         Ok(())
     }
 
@@ -1021,6 +1032,22 @@ impl Instance {
 
     pub fn peer_id(&self) -> PeerId {
         self.peer_manager.my_peer_id()
+    }
+
+    pub fn get_flow_policy_manager(&self) -> Option<Arc<FlowPolicyManager>> {
+        self.flow_policy_manager.clone()
+    }
+
+    pub fn set_flow_policy_manager(&mut self, manager: Option<Arc<FlowPolicyManager>>) {
+        self.flow_policy_manager = manager;
+    }
+
+    pub fn get_report_manager(&self) -> Option<Arc<ReportManager>> {
+        self.report_manager.clone()
+    }
+
+    pub fn set_report_manager(&mut self, manager: Option<Arc<ReportManager>>) {
+        self.report_manager = manager;
     }
 
     fn get_vpn_portal_rpc_service(&self) -> impl VpnPortalRpc<Controller = BaseController> + Clone {

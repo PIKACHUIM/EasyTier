@@ -716,12 +716,24 @@ impl ForeignNetworkManager {
             .map(|v| *v)
     }
 
-    pub async fn send_msg_to_peer(
+pub async fn send_msg_to_peer(
         &self,
         network_name: &str,
         dst_peer_id: PeerId,
         msg: ZCPacket,
     ) -> Result<(), Error> {
+        // 检查是否禁用公共转发
+        if let Some(manager) = self.global_ctx.policy_container().get_flow_policy_manager().await {
+            if manager.should_disable_public_forward() {
+                tracing::warn!(
+                    ?network_name,
+                    ?dst_peer_id,
+                    "Public forward disabled by flow policy, dropping packet"
+                );
+                return Err(Error::Unknown);
+            }
+        }
+
         if let Some(entry) = self.data.get_network_entry(network_name) {
             entry
                 .peer_map

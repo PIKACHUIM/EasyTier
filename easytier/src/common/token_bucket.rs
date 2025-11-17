@@ -9,6 +9,7 @@ use crate::common::scoped_task::ScopedTask;
 use crate::proto::common::LimiterConfig;
 
 /// Token Bucket rate limiter using atomic operations
+#[derive(Debug)]
 pub struct TokenBucket {
     available_tokens: AtomicU64, // Current token count (atomic)
     last_refill_time: AtomicU64, // Last refill time as micros since epoch
@@ -17,7 +18,7 @@ pub struct TokenBucket {
     start_time: Instant,         // Bucket creation time
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct BucketConfig {
     capacity: u64,             // Maximum token capacity
     fill_rate: u64,            // Tokens added per second
