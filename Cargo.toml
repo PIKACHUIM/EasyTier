@@ -5,6 +5,7 @@ members = [
     "easytier-gui/src-tauri",
     "easytier-rpc-build",
     "easytier-web",
+	"health-check-cli",
     "easytier-contrib/easytier-ffi",
     "easytier-contrib/easytier-uptime",
     "easytier-contrib/easytier-android-jni",
