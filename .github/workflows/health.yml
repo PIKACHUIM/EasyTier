@@ -1,6 +1,7 @@
 name: Build Health Check CLI
 
 on:
+  workflow_dispatch:
 #  push:
 #    branches: [ main, master ]
 #    paths:
@@ -9,7 +10,7 @@ on:
 #    branches: [ main, master ]
 #    paths:
 #      - 'health-check-cli/**'
-  workflow_dispatch:
+
 
 env:
   CARGO_TERM_COLOR: always
