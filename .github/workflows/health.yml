@@ -1,14 +1,14 @@
 name: Build Health Check CLI
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'health-check-cli/**'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'health-check-cli/**'
+#  push:
+#    branches: [ main, master ]
+#    paths:
+#      - 'health-check-cli/**'
+#  pull_request:
+#    branches: [ main, master ]
+#    paths:
+#      - 'health-check-cli/**'
   workflow_dispatch:
 
 env:
