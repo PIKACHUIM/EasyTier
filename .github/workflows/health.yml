@@ -41,7 +41,7 @@ jobs:
     #          - os: macos-latest
     #            target: aarch64-apple-darwin
     #            binary_name: health-check
-#            artifact_name: health-check-macos-aarch64
+    #            artifact_name: health-check-macos-aarch64
 
     defaults:
       run:
@@ -80,12 +80,25 @@ jobs:
         shell: bash
 
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --verbose
+
+      - name: Check if binary exists
+        run: |
+          echo "Checking for binary..."
+          ls -la target/${{ matrix.target }}/release/
+          if [ -f "target/${{ matrix.target }}/release/${{ matrix.binary_name }}" ]; then
+            echo "Binary found successfully"
+          else
+            echo "Binary not found"
+            echo "Build artifacts:"
+            find target/${{ matrix.target }}/ -name "*health*" -o -name "*check*" 2>/dev/null || echo "No artifacts found"
+            exit 1
+          fi
 
       - name: Strip binary (Unix)
         if: runner.os != 'Windows'
         run: |
-          if [ -f "target/${{ matrix.target }}/release/${{ matrix.binary_name }}" ]; then
+          if [ -f "target/${{ matrix.target }}/release/${{ matrix.binary_name}}" ]; then
             strip target/${{ matrix.target }}/release/${{ matrix.binary_name }}
           else
             echo "Binary not found, skipping strip step"
@@ -95,5 +108,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: health-check-cli/target/${{ matrix.target }}/release/${{ matrix.binary_name }}
+          path: target/${{ matrix.target }}/release/${{ matrix.binary_name }}
           retention-days: 30
+
