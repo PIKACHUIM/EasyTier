@@ -67,9 +67,20 @@ jobs:
           ${{ runner.os }}-cargo-${{ matrix.target }}-
           ${{ runner.os }}-cargo-
 
-    - name: Install musl tools (Linux)
+- name: Install musl tools (Linux)
       if: matrix.target == 'x86_64-unknown-linux-musl'
       run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+    - name: Install protobuf compiler
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install protobuf
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          choco install protoc
+        fi
+      shell: bash
 
     - name: Build release binary
       run: cargo build --release --target ${{ matrix.target }}
