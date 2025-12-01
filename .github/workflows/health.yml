@@ -82,7 +82,7 @@ jobs:
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
 
-- name: Strip binary (Unix)
+      - name: Strip binary (Unix)
         if: runner.os != 'Windows'
         run: |
           if [ -f "target/${{ matrix.target }}/release/${{ matrix.binary_name }}" ]; then
